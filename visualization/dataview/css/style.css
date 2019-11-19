@@ -1,0 +1,66 @@
+svg{
+  background: #EAE7DC;
+}
+text{
+  font-family: "Comic Sans MS", cursive, sans-serif;
+  font-feature-settings: 'tnum';
+  font-size: 18px;
+}
+
+text.title{
+  font-size: 28px;
+  font-weight: 500;
+}
+text.subTitle{
+  font-size: 22px;
+  font-weight: 400;
+}
+text.caption{
+  font-weight: 500;
+  font-size: 16px;
+  fill: #8d8f94;
+}
+text.caption tspan:nth-child(2){
+  font-style: Italic;
+}
+text.label{
+  font-size: 14px;
+  font-weight: 500;
+}
+text.label tspan:nth-child(2){
+  font-weight: 400;
+  fill: #eeeeee;
+  display: none;
+}
+text.annotation{
+  font-size: 14px;
+  font-weight: 700;
+  fill: black;
+}
+text.yearText{
+  font-family: Metric, 'PT Sans', sans-serif;
+  font-size: 108px;
+  font-weight: 700;
+  fill: #777777;
+}
+
+.tick text {
+  fill: #999999;
+  font-weight: 500;
+}
+.xAxis .tick:nth-child(2) text {
+  text-anchor: start;
+}
+.yAxis .tick text {
+  text-anchor: end;
+}
+.tick line {
+  shape-rendering: CrispEdges;
+  stroke: #dddddd;
+}
+.tick line.origin{
+  stroke: #8d8f94;
+}
+path.domain{
+  display: none;
+}

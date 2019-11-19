@@ -1,0 +1,367 @@
+const chartDiv = document.getElementById("chart");
+
+const tickDuration = 1000;
+const top_n = 20;
+
+// let brandData = d3.csv('https://gist.githubusercontent.com/flexlev/d21fe540d4a464970fb4f790bd765bf1/raw/df59463244afc028d981704db3871a51038cda88/data_insults.csv')
+
+const svg = d3.select(chartDiv)
+               .append("svg")
+               .attr("width", width)
+               .attr("height", height);
+  
+const margin = {
+    top: 80,
+    right: 0,
+    bottom: 5,
+    left: 0
+};
+
+let barPadding = (height-(margin.bottom+margin.top))/(top_n*5);
+
+function myColor(i){
+    if(i < 11){
+      return d3.scaleLinear().domain([0,10])
+              .range(["#A8A595", "#A38640"])(i)
+    } else {
+      return d3.scaleLinear().domain([11,19])
+              .range(["#A38640", "#211C1C"])(i)
+    }
+}
+
+let title = svg.append('text')
+               .attr("class", "title")
+               .attr("y", 24)
+               .text('Developped Countries Adults Obesity Percentage');
+
+let subTitle = svg.append('text')
+                   .attr("class", "subTitle")
+                   .attr("y", 55)
+                   .text('(1975-2016)');
+
+let caption = svg.append('text')
+                 .attr("class", "caption")
+                 .attr("x", width)
+                 .attr("y", height-5)
+                 .style("text-anchor", "end")
+                 .text("Source: ourworldindata.org");
+
+let current_year = 1975;
+let brandData = [];
+
+let image_width = 50;
+let image_height = 24;
+let extra_image_height_gap = -7;
+
+var flags = [], unique_names = [], l = brandData.length, i;
+
+d3.csv("https://gist.githubusercontent.com/flexlev/8802232b948b0f89e2bec5982ad37c23/raw/b2aa4d4bb4c5937734164ba8bf22b127ae6f5f01/data_obesityWorldwide_racingChart.csv").then( function(data){
+//d3.csv("https://gist.githubusercontent.com/flexlev/16e275d46af1c66028598c57a9f1d427/raw/0fa68cb7d95451a716972b1da79818f52b6129a6/data_obesity_percentage.csv").then( function(data){
+
+    for(i = 0; i< data.length; i++){
+        brandData[i] = data[i];
+        if( !flags[brandData[i].name]){
+            flags[brandData[i].name] = true;
+            unique_names.push(brandData[i].name);
+        }
+    }
+
+    brandData.forEach(function (d, i) {
+        d.value = +d.value,
+        d.lastValue = +d.lastValue,
+        d.value = isNaN(d.value) ? 0 : d.value + 1,
+        d.year = +d.year,
+        d.colour = myColor( unique_names.indexOf(d.name) )
+    });
+
+    let yearSlice = brandData.filter(d => d.year == current_year && !isNaN(d.value))
+                         .sort((a,b) => b.value - a.value)
+                         .slice(0,top_n);
+
+    yearSlice.forEach((d,i) => d.rank = i);
+
+    let x = d3.scaleLinear()
+              .domain([0, d3.max(yearSlice, d => d.value)])
+              .range([margin.left + 150, width-margin.right-215]);
+
+    let y = d3.scaleLinear()
+              .domain([top_n, 0])
+              .range([height-margin.bottom, margin.top]);
+
+    let xAxis = d3.axisTop()
+                  .scale(x)
+                  .ticks(width > 500 ? 5:2)
+                  .tickSize(-(height-margin.top-margin.bottom))
+                  .tickFormat(d => d3.format(',')(d));
+
+    svg.append('g')
+       .attr("class", "axis xAxis")
+       .attr("transform", `translate(0, ${margin.top})`)
+       .call(xAxis)
+       .selectAll('.tick line')
+       .classed('origin', d => d == 0);
+
+    svg.selectAll('rect.bar')
+        .data(yearSlice, d => d.name)
+        .enter()
+        .append('rect')
+        .attr("class", "bar")
+        .attr("x", x(0)+1)
+        .attr("width", function(d){
+            return x(d.value)-x(0)-1;
+        })
+        .attr("y", function(d){return y(d.rank)+5;})
+        .attr("height", y(1)-y(0)-barPadding)
+        .style("fill", function(d){ return myColor( unique_names.indexOf(d.name) ) ; });
+
+    svg.selectAll('image')
+        .data(yearSlice, d => d.name)
+        .enter()
+        .append("svg:image")
+        .attr("class", "label")
+        .attr('width', image_width)
+        .attr('height', image_height)
+        .attr("x", margin.left + 140)
+        .attr("y", function(d){ return y(d.rank)+5+((y(1)-y(0))/2)+1 - image_height - extra_image_height_gap; })
+        .attr("xlink:href", function(d){ return"images/" + d.name +".png"; } )
+
+    svg.selectAll('text.nameLabel')
+        .data(yearSlice, d => d.name)
+        .enter()
+        .append('text')
+        .attr("class", "nameLabel")
+        .attr("text-anchor", "end")
+        .attr("x", margin.left + 140)
+        .attr("y", function(d){ return y(d.rank)+5+((y(1)-y(0))/2)+1; })
+        .text(function(d){return d.name; } ); //.html(d => x(d.value)-x(0)-1 > 200 ? '"' + d.name + '"' : "");
+
+    svg.selectAll('text.valueLabel')
+        .data(yearSlice, d => d.name)
+        .enter()
+        .append('text')
+        .attr("class", "valueLabel")
+        .attr("x", function(d){return x(d.value)+5;})
+        .attr("y", function(d){return y(d.rank)+5+((y(1)-y(0))/2)+1;})
+        .text(function(d){return d3.format('.3s')(d.value);} );
+
+    svg.append('text')
+        .attr("class", "annotation")
+        .attr("transform", `translate(${width-margin.right-15}, ${height-margin.bottom-240})`)
+        .style('text-anchor', 'end')
+        .text('')
+        .selectAll('tspan')
+        .data(['Annotations go here', 'like this'], d => d)
+        .enter()
+        .append('tspan')
+        .text(function(d){return d;})
+        .attr("x", 0)
+        .attr("y", function(d,i){ return i * 28;})
+        .attr("opacity", 0)
+
+    let yearText = svg.append('text')
+                      .attr("class", "yearText")
+                      .attr("x", width-margin.right)
+                      .attr("y", height-25)
+                      .style('text-anchor', 'end')
+                      .text(current_year);
+
+    let annotate = function(text){
+
+        let annotation = svg.selectAll('.annotation').selectAll('tspan').data(text, d => d);
+
+        //console.log(annotation.enter().data());
+
+        annotation
+          .enter()
+          .append('tspan')
+          .html(d => d)
+          .attr("x", 0)
+          .attr("y", function(d,i){ return i * 28;})
+            .transition()
+            .ease(d3.easeLinear)
+            .duration(250)
+            .attr("opacity", 1)
+              .transition()
+              .ease(d3.easeLinear)
+              .delay(9000)
+              .duration(250)
+              .attr("opacity", 0);
+
+        annotation.exit().remove();
+    }
+
+    function animate() {
+        yearSlice = brandData.filter(d => (d.year == current_year) && !isNaN(d.value))
+                            .sort((a,b) => b.value - a.value)
+                            .slice(0,top_n);
+
+        yearSlice.forEach(function(d,i){
+            d.rank = i;
+            d.colour = myColor( unique_names.indexOf(d.name) );
+        });
+
+        x.domain([0, d3.max(yearSlice, d => d.value)]);
+
+        svg.select('.xAxis')
+          .transition()
+          .duration(tickDuration)
+          .ease(d3.easeLinear)
+          .call(xAxis);
+
+        let bars = svg.selectAll('.bar').data(yearSlice, d => d.name);
+
+
+        bars
+          .enter()
+          .append('rect')
+          .attr("class", function(d,i){ 
+            return `bar ${d.name}`;
+        })
+          .attr("x", x(0)+1)
+          .attr("width", function(d,i){ return x(d.value)-x(0)-1;})
+          .attr("y", y(top_n+1)+5)
+          .attr("height", y(1)-y(0)-barPadding)
+        //   .style("fill", function(d,i){ 
+        //     return d.colour;
+        // })
+          .transition()
+            .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("width", function(d,i){ return y(d.rank)+5;});
+
+
+        bars
+          .transition()
+            .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("width", function(d,i){ return x(d.value)-x(0)-1;})
+            .attr("y", function(d,i){ 
+                return y(d.rank)+5;
+            })
+
+        bars
+          .exit()
+          .transition()
+            .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("width", function(d,i){ return x(d.value)-x(0)-1;})
+            .attr("y", y(top_n+1)+5)
+            .remove();
+
+        let labels = svg.selectAll('.label').data(yearSlice, d => d.name);
+
+        labels
+          .enter()
+          .append('text')
+          .attr("class", 'label')
+          .attr("x", margin.left + 140)
+          .attr("y", y(top_n+1)+5+((y(1)-y(0))/2))
+          .attr("text-anchor", 'end')
+          .html(d => '"' + d.name + '"')    
+          .transition()
+            .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("y", function(d){ return y(d.rank)+5+((y(1)-y(0))/2)+1- image_height - extra_image_height_gap;});
+
+        labels
+          .transition()
+          .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("x", margin.left + 140)
+            .attr("y", function(d,i){ return y(d.rank)+5+((y(1)-y(0))/2)+1- image_height - extra_image_height_gap;});
+
+        labels
+          .exit()
+          .transition()
+            .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("x", margin.left + 140)
+            .attr("y", y(top_n+1)+5+((y(1)-y(0))/2)+1- image_height - extra_image_height_gap)
+            .remove();
+
+        let valueLabels = svg.selectAll('.valueLabel').data(yearSlice, d => d.name);
+
+        valueLabels
+          .enter()
+          .append('text')
+          .attr("class", 'valueLabel')
+          .attr("x", function(d,i){ return x(d.value)+5;})
+          .attr("y", y(top_n+1)+5)
+          .text(d => d3.format(',.0f')(d.lastValue))
+          .transition()
+            .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("y", function(d,i){ return y(d.rank)+5+((y(1)-y(0))/2)+1;});
+
+        valueLabels
+          .transition()
+            .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("x", function(d,i){ return x(d.value)+5;})
+            .attr("y", function(d,i){ return y(d.rank)+5+((y(1)-y(0))/2)+1;})
+            .tween("text", function(d) {
+              let i = d3.interpolateNumber(d.lastValue, d.value);
+              return function(t) {
+                this.textContent = d3.format('.3s')(i(t));
+              };
+            });
+
+        valueLabels
+          .exit()
+          .transition()
+            .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("x", function(d,i){ return x(d.value)+5;})
+            .attr("y", y(top_n+1)+5)
+            .remove();
+
+        let nameLabels = svg.selectAll('.nameLabel').data(yearSlice, d => d.name);
+
+        nameLabels
+          .enter()
+          .append('text')
+          .attr("class", 'nameLabel')
+          .attr("x", function(d,i){ return margin.left + 140;})
+          .attr("y", y(top_n+1)+5)
+          .text(d => d.name)
+          .transition()
+            .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("y", function(d,i){ return y(d.rank)+5+((y(1)-y(0))/2)+1;});
+
+        nameLabels
+          .transition()
+            .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("x", function(d,i){ return margin.left + 140;})
+            .attr("y", function(d,i){ return y(d.rank)+5+((y(1)-y(0))/2)+1;})
+            .text(d => d.name);
+            // .tween("text", function(d) {
+            //   let i = d3.interpolateNumber(d.lastValue, d.value);
+            //   return function(t) {
+            //     this.textContent = d3.format('.3s')(i(t));
+            //   };
+            // });
+
+        nameLabels
+          .exit()
+          .transition()
+            .duration(tickDuration)
+            .ease(d3.easeLinear)
+            .attr("x", function(d,i){ return x(d.value)+5;})
+            .attr("y", y(top_n+1)+5)
+            .remove();
+
+        if(current_year >= 2016) ticker.stop();
+
+        current_year = current_year +1;
+        yearText.text(current_year);
+
+    }
+
+    let ticker = d3.interval(e => {
+        animate();
+    },tickDuration);
+  
+});
+
