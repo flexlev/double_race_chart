@@ -8,8 +8,9 @@ text{
 }
 
 text.title{
+  font-family: Open Sans, sans-serif;
   font-size: 28px;
-  font-weight: 500;
+  font-weight: 700;
 }
 text.subTitle{
   font-size: 22px;
@@ -24,6 +25,10 @@ text.caption tspan:nth-child(2){
   font-style: Italic;
 }
 text.label{
+  font-size: 14px;
+  font-weight: 500;
+}
+text.nameLabel{
   font-size: 14px;
   font-weight: 500;
 }
