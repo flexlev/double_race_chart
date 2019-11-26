@@ -13,22 +13,18 @@
 		<svg width="1280" height="720">
 	        <g transform="translate(20, 0)">
 	          <g transform="translate(640, 0)">
-	            <text class="title" x="-300" y="30"></text>
-	            <text class="right label" x="-200" y="55">US</text>
-	            <text class="left label" x="200" y="55">China</text>
-	            <text class="year label" x="0" y="55">yrs</text>
+	            <text class="title" x="-350" y="35"></text>
 	            <g transform="translate(0, 60)">
-	              <g class="left axis" transform="translate(-20, 0)"></g>
-	              <g class="right axis" transform="translate(20, 0)"></g>
-	              <g class="bars"></g>
+	              <g class="left axis" transform="translate(-60, 25)"></g>
+	              <g class="right axis" transform="translate(60, 25)"></g>
+	              <g class="bars">
+	              	<!-- <img src="images/China.png" x="-200" y="550"></img>
+	            	<img src="images/United States.png" x="200" y="550"></img> -->
+	              </g>
 	            </g>
 	          </g>
 	        </g>
 	      </svg>
-      <div id="controls">
-        <input type="range" id="year-input" value="1980" min="1980" max="2050" step="5" style="width: 800px;"/>
-        <button id="play-button">Play</button>
-      </div>
 	</div>
 	<script src="js/lodash.min.js"></script>
 	<script src="https://d3js.org/d3.v5.min.js"></script>

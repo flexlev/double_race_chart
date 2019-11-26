@@ -9,8 +9,8 @@ Created on Sun Nov 24 20:06:34 2019
 import pandas as pd
 import numpy as np
 
-df_us = pd.read_csv("/home/flex_lev/Dev/Perso/double_race_chart/data/vendor-US-monthly-201003-201911.csv")
-df_china = pd.read_csv("/home/flex_lev/Dev/Perso/double_race_chart/data/vendor-CN-monthly-201003-201911.csv")
+df_us = pd.read_csv("/home/flex_lev/Dev/Perso/double_race_chart/data/vendor-US-monthly-201003-201911.csv").drop(columns=["Unknown"])
+df_china = pd.read_csv("/home/flex_lev/Dev/Perso/double_race_chart/data/vendor-CN-monthly-201003-201911.csv").drop(columns=["Unknown"])
 
 #name value lastValue rank date
 def create_dataframe(df, name = None):

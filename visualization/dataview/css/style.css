@@ -8,9 +8,10 @@ text{
 }
 
 text.title{
-  font-family: Open Sans, sans-serif;
-  font-size: 28px;
+  /*font-family: Open Sans, sans-serif;*/
+  font-size: 36px;
   font-weight: 700;
+  fill: #211C1C;
 }
 text.subTitle{
   font-size: 22px;
